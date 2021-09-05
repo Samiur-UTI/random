@@ -30,4 +30,22 @@ router.get('/verify', async (req, res) => {
         res.send(results.message)
     })
 })
+router.post('/login', async (req, res) => {
+    const {email,password} = req.body
+    const query = `SELECT pass FROM users WHERE email="${email}"`;
+    connection.query(query, (err,results) => {
+        if (err) throw err;
+        const hash = results[0].pass
+        console.log(hash,password)
+        bcrypt.compare(password, hash,(err, result) => {
+            if(err) throw err;
+            console.log(result)
+            if(result){
+                res.send('Authenticated successfully')
+            } else{
+                res.send('Authentication failed')
+            }
+        })
+    })
+})
 module.exports = router
