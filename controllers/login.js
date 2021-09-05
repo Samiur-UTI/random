@@ -33,7 +33,8 @@ router.get('/verify', async (req, res) => {
     })
 })
 router.post('/login', async (req, res) => {
-    const {email,password} = req.body
+    const {email,password,id} = req.body
+    console.log(email,password)
     const query = `SELECT * FROM users WHERE email="${email}"`;
     connection.query(query, (err,results) => {
         if (err) throw err;
