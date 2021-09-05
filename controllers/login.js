@@ -38,6 +38,7 @@ router.post('/login', async (req, res) => {
     const query = `SELECT * FROM users WHERE email="${email}"`;
     connection.query(query, (err,results) => {
         if (err) throw err;
+        console.log(results)
         const userInfo = results[0]
         console.log(userInfo)
         const hash = userInfo.pass

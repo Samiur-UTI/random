@@ -43,7 +43,30 @@ router.post('/userprofile/:id/create',tokenAuth, async (req, res, next)=>{
         })
     }
 })
-
+router.delete('/userprofile/:id/delete',tokenAuth, async (req, res, next) => {
+    const {id} = req.user
+    if(id === req.params.id){
+        const query = `DELETE FROM userprofile WHERE id="${id}"`
+        connection.query(query,(err,results,fields) => {
+            if(err) throw err;
+            else res.status(200).send('Profile info deleted')
+        })
+    }
+})
+router.patch('/userprofile/:id/update',tokenAuth, async (req, res, next) => {
+    const {id} = req.user
+    if(id === req.params.id){
+        const image = req.file
+        const body = JSON.parse(JSON.stringify(req.body))
+        const {filename} = image
+        const {firstName,lastName,mobile,address,dateOfBirth,passport,country} = body
+        const query = `UPDATE userprofile SET first_name="${firstName}", last_name="${lastName}",mobile_num="${mobile}",address="${address}",date_of_birth="${dateOfBirth}",passport="${passport}",country="${country}",image="${filename}" WHERE id="${id}"`
+        connection.query(query,(err,results,fields) => {
+            if (err) throw err;
+            res.status(201).send('Profile updated successfully')
+        })
+    }
+})
 function tokenAuth(req,res,next){
     const authHeader = req.headers['authorization']
     if (!authHeader){
