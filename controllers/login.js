@@ -1,9 +1,11 @@
+require('dotenv').config()
 const express= require('express');
 const router = express.Router();
 const mysql = require('mysql');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
-var randtoken = require('rand-token');
+const randtoken = require('rand-token');
+const jwt = require('jsonwebtoken')
 const saltRounds = 10;
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -32,20 +34,27 @@ router.get('/verify', async (req, res) => {
 })
 router.post('/login', async (req, res) => {
     const {email,password} = req.body
-    const query = `SELECT pass FROM users WHERE email="${email}"`;
+    const query = `SELECT * FROM users WHERE email="${email}"`;
     connection.query(query, (err,results) => {
         if (err) throw err;
-        const hash = results[0].pass
-        console.log(hash,password)
+        const userInfo = results[0]
+        console.log(userInfo)
+        const hash = userInfo.pass
         bcrypt.compare(password, hash,(err, result) => {
             if(err) throw err;
-            console.log(result)
             if(result){
-                res.send('Authenticated successfully')
+                const {id,email} = userInfo
+                const payload = {
+                    id,email
+                }
+                const token = jwt.sign(payload,process.env.ACCESS_TOKEN_SECRET)
+                res.send(`Authenticated Successfully here is your Token:${token}`)
+                // res.redirect(`/userprofile/${id}`)
             } else{
                 res.send('Authentication failed')
             }
         })
     })
 })
+
 module.exports = router
