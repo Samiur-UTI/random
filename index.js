@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true }));
 app.use(bodyParser.json());
 app.use(upload.single('image'))
+// app.use(upload.fields('image'))
 app.use(loginRoute)
 app.use(userRoute);
 app.listen(5000,() => {

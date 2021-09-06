@@ -15,14 +15,23 @@ const connection = mysql.createConnection({
 })
 router.post('/register', async (req, res) => {
     const {email,pass,isVerified,token} = req.body;
-    const id = uuidv4()
-    const hashedPass = await bcrypt.hash(pass, saltRounds)
-    let genToken = randtoken.generate(16);
-    const query = `INSERT INTO users(id,email,pass, isVerified,token) VALUES("${id}","${email}","${hashedPass}","${isVerified}","${genToken}")`;
-    connection.query(query,(err,results) => {
+    const query = `SELECT * FROM users WHERE email = '${email}'`
+    connection.query(query,async (err,results) => {
         if(err) throw err;
-        else res.send(`Registered! here is you token ${genToken}`)
+        if(!results.length){
+            const id = uuidv4()
+            const hashedPass = await bcrypt.hash(pass, saltRounds)
+            let genToken = randtoken.generate(16);
+            const query = `INSERT INTO users(id,email,pass, isVerified,token) VALUES("${id}","${email}","${hashedPass}","${isVerified}","${genToken}")`;
+            connection.query(query,(err,results) => {
+            if(err) throw err;
+            else res.send(`Registered! here is you token ${genToken}`)
+        })
+        }else {
+            res.json({message:"User already registered with the email address!"})
+        }
     })
+    
 })
 router.get('/verify', async (req, res) => {
     const {verification} = req.headers
@@ -40,22 +49,25 @@ router.post('/login', async (req, res) => {
         if (err) throw err;
         console.log(results)
         const userInfo = results[0]
-        console.log(userInfo)
-        const hash = userInfo.pass
-        bcrypt.compare(password, hash,(err, result) => {
-            if(err) throw err;
-            if(result){
-                const {id,email} = userInfo
-                const payload = {
-                    id,email
+        if(userInfo.isVerified !== 'false'){
+            const hash = userInfo.pass
+            bcrypt.compare(password, hash,(err, result) => {
+                if(err) throw err;
+                if(result){
+                    const {id,email} = userInfo
+                    const payload = {
+                        id,email
+                    }
+                    const token = jwt.sign(payload,process.env.ACCESS_TOKEN_SECRET)
+                    res.send(`Authenticated Successfully here is your Token:${token}`)
+                    // res.redirect(`/userprofile/${id}`)
+                } else{
+                    res.send('Authentication failed')
                 }
-                const token = jwt.sign(payload,process.env.ACCESS_TOKEN_SECRET)
-                res.send(`Authenticated Successfully here is your Token:${token}`)
-                // res.redirect(`/userprofile/${id}`)
-            } else{
-                res.send('Authentication failed')
-            }
-        })
+            })
+        }else{
+            res.json({message:'You need to verify your email first'})
+        }
     })
 })
 

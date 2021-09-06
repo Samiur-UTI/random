@@ -41,7 +41,9 @@ router.post('/userprofile/:id/create',tokenAuth, async (req, res, next)=>{
             if (err) throw err;
             res.status(201).send('Profile created successfully')
         })
-    }
+    } else{
+        res.status(203).send('you are not authorized to view this')
+    }   
 })
 router.delete('/userprofile/:id/delete',tokenAuth, async (req, res, next) => {
     const {id} = req.user
