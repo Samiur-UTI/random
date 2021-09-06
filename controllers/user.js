@@ -11,12 +11,12 @@ const connection = mysql.createConnection({
 })
 router.get('/userprofile',tokenAuth, async (req, res,next) => {
     const {id} = req.user
-    const query = `SELECT * FROM userprofile WHERE id = "${id}"`
+    const query = `SELECT * FROM userprofile WHERE userID = "${id}"`
     connection.query(query,(err,results)=>{
             if (err) throw err;
             console.log(results)
             if(results.length){
-                res.status(200).send(results[0])
+                res.status(200).json(results[0])
             }
             else {
                 res.send('Create your profile to see the results')
