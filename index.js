@@ -4,11 +4,11 @@ const loginRoute = require('./controllers/login')
 const userRoute = require('./controllers/user')
 const app = express();
 const multer = require('multer');
-const upload = multer({dest:'public/'})
+const upload = multer({dest:'public/',limits:{size:1000000}});
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true }));
 app.use(bodyParser.json());
-app.use(upload.single('image'))
+app.use(upload.array('image',10))
 // app.use(upload.fields('image'))
 app.use(loginRoute)
 app.use(userRoute);
