@@ -54,21 +54,22 @@ router.post('/register', async (req, res) => {
             res.json({message:"User already registered with the email address!"})
         }
     })
-
 })
 router.get('/verify', async (req, res) => {
     const {verification} = req.headers
-    const query = `UPDATE users SET isVerified="true" WHERE token="${verification}"`
+    const query = `SELECT isVerified FROM users WHERE token="${verification}"`
     connection.query(query,(err,results) => {
         if (err) throw err;
-        const query = `SELECT isVerified FROM users WHERE token="${verification}"`
-        connection.query(query,(err,results) => {
-            const {isVerified} = results[0]
+        const {isVerified} = results[0]
             if(isVerified === 'true'){
                 res.json({message: 'Profile is already verified!'})
+            }  else {
+                const query = `UPDATE users SET isVerified="true" WHERE token="${verification}"`
+                connection.query(query,(err,results) => {
+                    if (err) throw err;
+                    res.json({message:'Your profile is successfully verified'})
+                })
             }
-            else res.json({message:'Your profile is successfully verified'})
-        })
     })
 })
 router.post('/login', async (req, res) => {
