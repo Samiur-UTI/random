@@ -59,15 +59,20 @@ router.get('/userprofile',tokenAuth, async (req, res,next) => {
 // })
 router.delete('/userprofile/delete',tokenAuth, async (req, res, next) => {
     const {id} = req.user
-    const query = `DELETE FROM userprofile WHERE userID="${id}"`
-    connection.query(query,(err,results,fields) => {
-        if(err) throw err;
-        else {
-            const query = `DELETE FROM users WHERE id="${id}"`
+    const query = `SELECT * FROM users WHERE id = ${id}`
+    connection.query(query,(err,results)=>{
+        if(results.length){
+            const query = `DELETE FROM userprofile WHERE userID="${id}"`
             connection.query(query,(err,results,fields) => {
-                res.status(200).send('Profile info deleted')
+                if(err) throw err;
+                else {
+                    const query = `DELETE FROM users WHERE id="${id}"`
+                    connection.query(query,(err,results,fields) => {
+                        res.status(200).send('Profile info deleted')
+                    })
+                }
             })
-        }
+        } else res.json({message:'No profile found'})
     })
 })
 router.patch('/userprofile/update',tokenAuth, async (req, res, next) => {

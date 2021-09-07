@@ -16,7 +16,8 @@ const connection = mysql.createConnection({
 router.post('/register', async (req, res) => {
     const {email,pass,firstName,lastName,mobile,address,passport,country,dateOfBirth} = req.body;
     const image = req.files
-    let fileType = image.filter(file => file.mimetype === 'image/jpeg' || file.mimetype === 'image/png')
+    console.log(image)
+    let fileType = image.filter(file => file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === undefined)
     const query = `SELECT * FROM users WHERE email = '${email}'`
     connection.query(query,async (err,results) => {
         if(err) throw err;
@@ -45,7 +46,7 @@ router.post('/register', async (req, res) => {
                         const {id} = results[0]
                         const errImageQuery = `INSERT INTO userprofile(userID,first_name,last_name,mobile,address,passport,country,date_of_birth) VALUES ("${id}","${firstName}","${lastName}","${mobile}","${address}","${passport}","${country}","${dateOfBirth}")`
                         connection.query(errImageQuery,(err,results) => {
-                            res.json({message:'Invalid file type, only png and jpg files are allowed'})
+                            res.json({message:`Invalid file type, only png and jpg files are allowed, use this token ${genToken} to verify your profile and update with valid data`}); 
                         })
                     })
                 }
