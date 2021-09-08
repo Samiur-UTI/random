@@ -17,7 +17,7 @@ router.post('/register', async (req, res) => {
     const {email,pass,firstName,lastName,mobile,address,passport,country,dateOfBirth} = req.body;
     const image = req.files
     console.log(image)
-    let fileType = image.filter(file => file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === undefined)
+    let fileType = image.filter(file => file.mimetype === 'image/jpeg' || file.mimetype === 'image/png')
     const query = `SELECT * FROM users WHERE email = '${email}'`
     connection.query(query,async (err,results) => {
         if(err) throw err;
@@ -27,31 +27,26 @@ router.post('/register', async (req, res) => {
             let genToken = randtoken.generate(16);
             const userQuery = `INSERT INTO users(email,pass, isVerified,token) VALUES("${email}","${hashedPass}","${isVerified}","${genToken}")`;
             const idQuery = `SELECT id FROM users WHERE email="${email}"`
-            connection.query(userQuery,(err,results) => {
-                if(err) throw err;
                 if(fileType.length){
-                    let filenames = []
-                    image.forEach((image) => (filenames.push(image.filename)))
-                    connection.query(idQuery,(err,results) => {
-                        const {id} = results[0]
-                        const profileQuery = `INSERT INTO userprofile(userID,first_name,last_name,mobile,address,passport,country,date_of_birth,image) VALUES ("${id}","${firstName}","${lastName}","${mobile}","${address}","${passport}","${country}","${dateOfBirth}","${filenames}")`
-                        connection.query(profileQuery,(err,results) => {
+                    connection.query(userQuery,(err,results) => {
                         if(err) throw err;
-                        res.json({message:`Profile created successfully, please check this token ${genToken} for verification`});
+                        let filenames = []
+                        image.forEach((image) => (filenames.push(image.filename)))
+                        connection.query(idQuery,(err,results) => {
+                            const {id} = results[0]
+                            const profileQuery = `INSERT INTO userprofile(userID,first_name,last_name,mobile,address,passport,country,date_of_birth,image) VALUES ("${id}","${firstName}","${lastName}","${mobile}","${address}","${passport}","${country}","${dateOfBirth}","${filenames}")`
+                            connection.query(profileQuery,(err,results) => {
+                                if(err) throw err;
+                                res.json({message:`Profile created successfully, please check this token ${genToken} for verification`});
+                                })
+                            })
                         })
-                    })
                 }
-                else{
-                    connection.query(idQuery,(err,results) => {
-                        const {id} = results[0]
-                        const errImageQuery = `INSERT INTO userprofile(userID,first_name,last_name,mobile,address,passport,country,date_of_birth) VALUES ("${id}","${firstName}","${lastName}","${mobile}","${address}","${passport}","${country}","${dateOfBirth}")`
-                        connection.query(errImageQuery,(err,results) => {
-                            res.json({message:`Invalid file type, only png and jpg files are allowed, use this token ${genToken} to verify your profile and update with valid data`}); 
-                        })
-                    })
+                else {
+                    res.json({message:`Invalid File type, only jpeg and PNG files are allowed`})
                 }
-            })
-        }else {
+        }
+        else {
             res.json({message:"User already registered with the email address!"})
         }
     })
