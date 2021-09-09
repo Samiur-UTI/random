@@ -81,6 +81,23 @@ router.patch('/userprofile/update',tokenAuth, async (req, res, next) => {
     connection.query(query,(err,results,fields) => {
             if(err) throw err;
             if(results.length){
+                const {firstName,lastName,mobile,address,dateOfBirth,passport,country} = req.body
+                const query = `UPDATE userprofile SET first_name="${firstName}", last_name="${lastName}",mobile="${mobile}",address="${address}",date_of_birth="${dateOfBirth}",passport="${passport}",country="${country}" WHERE userID="${id}"`
+                connection.query(query,(err,results,fields) => {
+                    if (err) throw err;
+                    else res.status(201).send('Profile updated successfully')
+                })
+            } else{
+                res.json({message:'No profile found to update'})
+            }
+    })
+})
+router.patch('/userprofile/updateImage',tokenAuth, async (req, res, next) => {
+    const {id} = req.user
+    const query = `SELECT * FROM userprofile WHERE userID="${id}"`
+    connection.query(query,(err,results,fields) => {
+            if(err) throw err;
+            if(results.length){
                 const image = req.files
                 let fileType = image.filter(file => file.mimetype === 'image/jpeg' || file.mimetype === 'image/png')
                 console.log('After filter',fileType.length)
@@ -88,14 +105,14 @@ router.patch('/userprofile/update',tokenAuth, async (req, res, next) => {
                     let filenames = []
                     image.forEach((image) => (filenames.push(image.filename)))
                     console.log(filenames)
-                    const {firstName,lastName,mobile,address,dateOfBirth,passport,country} = req.body
-                    console.log(req.body)
-                    const query = `UPDATE userprofile SET first_name="${firstName}", last_name="${lastName}",mobile="${mobile}",address="${address}",date_of_birth="${dateOfBirth}",passport="${passport}",country="${country}",image="${filenames}" WHERE userID="${id}"`
+                    // const {firstName,lastName,mobile,address,dateOfBirth,passport,country} = req.body
+                    // console.log(req.body)
+                    const query = `UPDATE userprofile SET image="${filenames}" WHERE userID="${id}"`
                     connection.query(query,(err,results,fields) => {
                         if (err) throw err;
-                        else res.status(201).send('Profile updated successfully')
+                        else res.status(201).send('Profile picture updated successfully')
                     })
-                } else res.json({message:'Invalid file uploaded, only jpeg and PNG files are supported'})
+                }
             } else{
                 res.json({message:'No profile found to update'})
             }
